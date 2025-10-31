@@ -48,7 +48,9 @@ def extract_montage_channels(montage_file_path: str) -> list[tuple[str, str]]:
     If one channel consists of only one signal, then the second entry of the corresponding tuple will be left empty.
 
     :param montage_file_path: Path to the montage's info file.
+    :type montage_file_path: str
     :returns: A list of pairs that contain the channels that have to be subtracted.
+    :rtype: list[tuple[str, str]]
     """
     result = []
     with open(montage_file_path, 'r') as f:
@@ -72,6 +74,7 @@ def transform_edf_file(edf_file_path: str, montage: list[tuple[str, str]]) -> No
     :type edf_file_path: str
     :param montage: A list containing the pairs of signals that form one channel.
     :type montage: list[tuple[str, str]]
+    :returns: None
     """
     headers, signals = [], []
     edf_reader = pyedflib.EdfReader(edf_file_path)
@@ -103,11 +106,12 @@ def convert_and_store_edf_files(input_path: str, output_path: str) -> None:
     :type input_path: str
     :param output_path: Path to the output folder where the converted EDF files will be stored.
     :type output_path: str
+    :returns: None
     """
     # Copy files from input to output folder
     shutil.copytree(os.path.join(input_path, 'edf'), output_path)
 
-    for root, dirs, files in os.walk(output_path):
+    for root, _, files in os.walk(output_path):
         # If there are no files in the directory, continue with the next one
         if not files:
             continue
