@@ -1,5 +1,5 @@
 """
-This script provides a function to visualize EEG channel data along with artifact annotations.
+This script provides a functions to visualize EEG channel data.
 """
 
 import matplotlib
@@ -8,6 +8,7 @@ from matplotlib.patches import Patch
 import pyedflib
 import numpy as np
 import pandas as pd
+from scipy.signal import welch
 
 
 DEFAULT_COLORS = {
@@ -79,5 +80,40 @@ def visualize_eeg_with_artifacts(edf_file_path: str, csv_file_path: str, channel
     legend_handles = [Patch(facecolor=colors[label], alpha=0.3, label=label, edgecolor=colors[label])
                       for label in df['label'].unique()]
     axes.legend(handles=legend_handles)
+
+    return fig
+
+
+def visualize_power_spectrum(edf_file_path: str, channel: str,
+                             ylim: tuple[float, float] = (10e-2, 10e2)) -> matplotlib.figure:
+    """
+    Visualizes the power spectrum of the specified EEG channel in the specified EDF file.
+
+    :param edf_file_path: Path to the EDF file containing EEG data.
+    :type edf_file_path: str
+    :param channel: The EEG channel to visualize.
+    :type channel: str
+    :param ylim: Tuple specifying y-axis limits. Defaults to (10e-2, 10e2).
+    :type ylim: tuple[float, float]
+    :returns: The matplotlib figure containing the power spectrum visualization.
+    :rtype: matplotlib.figure
+    """
+    reader = pyedflib.EdfReader(edf_file_path)
+
+    channel_idx = reader.getSignalLabels().index(channel)
+    channel_data = reader.readSignal(channel_idx)
+    sampling_frequency = reader.getSampleFrequency(channel_idx)
+
+    reader.close()
+
+    f, pxx = welch(channel_data, fs=sampling_frequency, nperseg=2048)
+
+    fig, axes = plt.subplots()
+
+    axes.set_title(f"Power Spektrum des EEG Signals von Kanal {channel}")
+    axes.set_xlabel("Frequenz in Hz")
+    axes.set_ylabel("Leistung/Frequenz (V²/Hz)")
+    axes.set_ylim(ylim)
+    axes.semilogy(f, pxx)
 
     return fig
