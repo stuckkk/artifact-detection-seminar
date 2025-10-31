@@ -1,3 +1,7 @@
+"""
+This script provides a function to visualize EEG channel data along with artifact annotations.
+"""
+
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
@@ -14,9 +18,10 @@ DEFAULT_COLORS = {
     'eyem_musc': 'purple'
 }
 
+
 def visualize_eeg_with_artifacts(edf_file_path: str, csv_file_path: str, channel: str, interval_start: float,
-                                 interval_stop: float, colors: dict[str, str]=DEFAULT_COLORS,
-                                 ylim: tuple[float, float]=None) -> matplotlib.figure:
+                                 interval_stop: float, colors: dict[str, str] = DEFAULT_COLORS,
+                                 ylim: tuple[float, float] = None) -> matplotlib.figure:
     """
     Visualizes the EEG channel data of the specified channel in the specified session in the specified time interval.
 
@@ -30,8 +35,8 @@ def visualize_eeg_with_artifacts(edf_file_path: str, csv_file_path: str, channel
     :type interval_start: float
     :param interval_stop: The stop time of the visualized interval in seconds.
     :type interval_stop: float
-    :param colors: A dictionary mapping artifact classes to colors. If provided, it has to contain values for all the classes present.
-                   Defaults to `DEFAULT_COLORS`.
+    :param colors: A dictionary mapping artifact classes to colors. If provided, it has to contain values for all
+                   the classes present. Defaults to `DEFAULT_COLORS`.
     :type colors: dict[str, str]
     :param ylim: Tuple specifying y-axis limits. If None, limits are determined automatically. Defaults to `None`.
     :type ylim: tuple[float, float]
@@ -54,10 +59,16 @@ def visualize_eeg_with_artifacts(edf_file_path: str, csv_file_path: str, channel
     upper_bound = int(interval_stop * sampling_frequency)
 
     fig, axes = plt.subplots(figsize=(12, 4))
-    axes.set_title(f"EEG Signal und Artefaktannotationen {channel} zwischen Sekunden {interval_start} und {interval_stop}")
+    title_str = f"EEG Signal und Artefaktannotationen {channel} zwischen Sekunden {interval_start} und {interval_stop}"
+
+    axes.set_title(title_str)
     axes.set_xlabel("Sekunde")
     axes.set_ylabel("Amplitude in µV")
-    axes.plot(np.arange(lower_bound, upper_bound) / sampling_frequency, channel_data[lower_bound:upper_bound], linewidth=0.8)
+    axes.plot(
+        np.arange(lower_bound, upper_bound) / sampling_frequency,
+        channel_data[lower_bound:upper_bound],
+        linewidth=0.8
+    )
 
     if ylim:
         axes.set_ylim(ylim)
@@ -65,7 +76,8 @@ def visualize_eeg_with_artifacts(edf_file_path: str, csv_file_path: str, channel
     for row in df.itertuples():
         axes.axvspan(row.start_time, row.stop_time, color=colors[row.label], alpha=0.3, label=row.label)
 
-    legend_handles = [Patch(facecolor=colors[label], alpha=0.3, label=label, edgecolor=colors[label]) for label in df['label'].unique()]
+    legend_handles = [Patch(facecolor=colors[label], alpha=0.3, label=label, edgecolor=colors[label])
+                      for label in df['label'].unique()]
     axes.legend(handles=legend_handles)
 
     return fig

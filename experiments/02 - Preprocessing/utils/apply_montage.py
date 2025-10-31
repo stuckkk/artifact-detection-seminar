@@ -1,6 +1,6 @@
 """
-This script converts the EDF files to the montages in which the annotations were created. Parts of this code have been
-copied from [Aymane's EAD repository](https://github.com/hemmouda/EAD/tree/main).
+This script provides functions to transform the EDF files to the montages in which the annotations were created.
+Parts of this code have been copied from [Aymane's EAD repository](https://github.com/hemmouda/EAD/tree/main).
 """
 
 import re
@@ -10,7 +10,8 @@ import pyedflib
 import numpy as np
 
 
-def compute_new_channel(edf_reader: pyedflib.EdfReader, signal_names: tuple[str, str]) -> tuple[dict[str, str], list[float]]:
+def compute_new_channel(edf_reader: pyedflib.EdfReader,
+                        signal_names: tuple[str, str]) -> tuple[dict[str, str], list[float]]:
     """
     Computes a new channel as the difference between two existing signals. If only one signal is provided the new
     channel will have the same values as the provided signal.
@@ -23,16 +24,16 @@ def compute_new_channel(edf_reader: pyedflib.EdfReader, signal_names: tuple[str,
     :rtype: tuple[dict[str, str], list[float]]
     """
     # Regex pattern to extract name of electrode
-    pattern = r"\s(.*?)-"
+    reg = r"\s(.*?)-"
     ch1_data = edf_reader.readSignal(edf_reader.getSignalLabels().index(signal_names[0]))
     # If only one signal is provided, adjust data and name of new channel accordingly
     if signal_names[1]:
         ch2_data = edf_reader.readSignal(edf_reader.getSignalLabels().index(signal_names[1]))
         new_channel_data = ch1_data - ch2_data
-        new_channel_name = f"{re.search(pattern, signal_names[0]).group(1)}-{re.search(pattern, signal_names[1]).group(1)}"
+        new_channel_name = f"{re.search(reg, signal_names[0]).group(1)}-{re.search(reg, signal_names[1]).group(1)}"
     else:
         new_channel_data = ch1_data
-        new_channel_name = re.search(pattern, signal_names[0]).group(1)
+        new_channel_name = re.search(reg, signal_names[0]).group(1)
     new_headers = edf_reader.getSignalHeader(edf_reader.getSignalLabels().index(signal_names[0]))
     new_headers["label"] = new_channel_name
     # Round because EDF header has place for eight digits only

@@ -1,15 +1,14 @@
 """
-The function provided in this script maps the human names from Aymane's data split back to the original names used in
-the files.
+This script provides functions to split the data according to Aymane's data split YAML file. It also maps the
+human names back to the original code-names used in the files.
 """
 
 import pandas as pd
 import yaml
 
-data_split_file = '../../../EAD/code/preprocessing/data_split.yaml'
-name_mappings_file = '../../../EAD/code/molding/name_mappings.csv'
 
-
+# data_split_file = '../../../EAD/code/preprocessing/data_split.yaml'
+# name_mappings_file = '../../../EAD/code/molding/name_mappings.csv'
 def get_mapped_names(data_split_file: str, name_mappings_file: str) -> dict[str, list[str]]:
     """
     Reads the data split YAML file and maps the human names to the original names used in the files.
