@@ -55,3 +55,28 @@ def sort_files_by_set(split: dict[str, list[str]], dir_path: str) -> None:
             os.makedirs(dest_dir_path, exist_ok=True)
             dest_file_path = os.path.join(dest_dir_path, file)
             shutil.move(os.path.join(root, file), dest_file_path)
+
+
+def remove_seizure_recordings(dir_path: str) -> None:
+    """
+    Moves all CSV and corresponding EDF files in the specified directory that contain seizure recordings
+    to a folder named `unsorted`.
+
+    :param dir_path: Path to the directory containing the files.
+    :type dir_path: str
+    :returns: None
+    """
+    for root, _, files in os.walk(dir_path):
+        if os.path.basename(root) == 'unsorted':
+            continue
+        for file in tqdm(files, desc=f'Removing seizure recordings in {root}'):
+            if file.endswith('_seiz.csv'):
+                session_token_basename = file.removesuffix('_seiz.csv')
+                shutil.move(os.path.join(root, file), os.path.join(dir_path, 'unsorted', file))
+                # Also remove EDF file and CSV file with annotations if they exist
+                edf_file = session_token_basename + '.edf'
+                annot_file = session_token_basename + '.csv'
+                if os.path.exists(os.path.join(root, edf_file)):
+                    shutil.move(os.path.join(root, edf_file), os.path.join(dir_path, 'unsorted', edf_file))
+                if os.path.exists(os.path.join(root, annot_file)):
+                    shutil.move(os.path.join(root, annot_file), os.path.join(dir_path, 'unsorted', annot_file))
