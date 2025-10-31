@@ -5,7 +5,7 @@ copied from [Aymane's EAD repository](https://github.com/hemmouda/EAD/tree/main)
 
 import re
 import os
-import argparse
+import shutil
 import pyedflib
 import numpy as np
 
@@ -35,8 +35,9 @@ def compute_new_channel(edf_reader: pyedflib.EdfReader, signal_names: tuple[str,
         new_channel_name = re.search(pattern, signal_names[0]).group(1)
     new_headers = edf_reader.getSignalHeader(edf_reader.getSignalLabels().index(signal_names[0]))
     new_headers["label"] = new_channel_name
-    new_headers["physical_min"] = np.min(new_channel_data)
-    new_headers["physical_max"] = np.max(new_channel_data)
+    # Round because EDF header has place for eight digits only
+    new_headers["physical_min"] = np.round(np.min(new_channel_data), 2)
+    new_headers["physical_max"] = np.round(np.max(new_channel_data), 2)
     return new_headers, new_channel_data
 
 
@@ -80,6 +81,8 @@ def transform_edf_file(edf_file_path: str, montage: list[tuple[str, str]]) -> No
         signals.append(signal)
 
     edf_reader.close()
+
+    # Remove old version of EDF file and replace it with new one
     os.remove(edf_file_path)
 
     edf_writer = pyedflib.EdfWriter(
@@ -93,42 +96,24 @@ def transform_edf_file(edf_file_path: str, montage: list[tuple[str, str]]) -> No
 def convert_and_store_edf_files(input_path: str, output_path: str) -> None:
     """
     Converts the EDF files to the montages in which the artifact annotations were created and stores them in the output
-    folder.
+    folder. This function does not alter any file in the input folder
 
     :param input_path: Path to the `v3.0.1` folder of the TUAR dataset. It must contain the `edf` and the `DOCS` folder.
     :type input_path: str
     :param output_path: Path to the output folder where the converted EDF files will be stored.
     :type output_path: str
     """
-    for root, dirs, files in os.walk(input_path):
+    # Copy files from input to output folder
+    shutil.copytree(os.path.join(input_path, 'edf'), output_path)
 
-    # TODO implement the conversion logic here
-        pass
-
-
-# TODO do all argparse stuff in another script, this script should only contain the functions
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description="Convert EDF files to the montages in which the artifact annotations were created."
-    )
-
-    parser.add_argument(
-        "-i",
-        "--input",
-        help="Path to the `v3.0.1` folder of the TUAR dataset. It must contain the `edf` and the `DOCS` folder.",
-        required=True,
-        type=str
-    )
-
-    parser.add_argument(
-        "-o",
-        "--output",
-        help="Path to the output folder where the converted EDF files will be stored.",
-        required=True,
-        type=str
-    )
-
-    args = parser.parse_args()
-    input_path = args.input
-    output_path = args.output
-    os.makedirs(output_path, exist_ok=True)
+    for root, dirs, files in os.walk(output_path):
+        # If there are no files in the directory, continue with the next one
+        if not files:
+            continue
+        montage_name = os.path.basename(root)
+        montage_file_path = os.path.join(input_path, 'DOCS', f'{montage_name}_montage.txt')
+        montage_channels = extract_montage_channels(montage_file_path)
+        for file in files:
+            if file.endswith('.edf'):
+                edf_file_path = os.path.join(root, file)
+                transform_edf_file(edf_file_path=edf_file_path, montage=montage_channels)
