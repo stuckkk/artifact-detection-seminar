@@ -32,14 +32,25 @@ def resample_and_filter_edf_file_data(edf_reader: pyedflib.EdfReader, target_fs:
     if (edf_reader.getSampleFrequencies() < target_fs).any():
         raise ValueError("Target sampling frequency must be lower than all the original frequencies.")
 
+    # Calculate sos filters for each channel based on its original sampling frequency
+    sos_filters = np.array([butter(
+                                N=order,
+                                Wn=[hp, lp],
+                                btype='bandpass',
+                                fs=edf_reader.getSampleFrequency(i),
+                                output='sos'
+                            ) for i in range(edf_reader.signals_in_file)])
+
+    # Apply sos filters to each channel
     altered_channel_data = np.array([
-        resample_poly(edf_reader.readSignal(i), up=target_fs, down=channel_freq)
-        for i, channel_freq in enumerate(edf_reader.getSampleFrequencies())
+        sosfiltfilt(sos_filters[i], edf_reader.readSignal(i)) for i in range(edf_reader.signals_in_file)
     ])
 
-    for channel_data in altered_channel_data:
-        sos = butter(N=order, Wn=[hp, lp], btype='bandpass', fs=target_fs, output='sos')
-        channel_data = sosfiltfilt(sos, channel_data)
+    # Resample each channel to the target sampling frequency
+    altered_channel_data = np.array([
+        resample_poly(altered_channel_data[i], up=target_fs, down=channel_freq)
+        for i, channel_freq in enumerate(edf_reader.getSampleFrequencies())
+    ])
 
     return altered_channel_data
 
