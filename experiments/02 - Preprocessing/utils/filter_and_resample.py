@@ -43,7 +43,7 @@ def resample_and_filter_edf_file_data(edf_reader: pyedflib.EdfReader, target_fs:
 
     # Apply sos filters to each channel
     altered_channel_data = np.array([
-        sosfiltfilt(sos_filters[i], edf_reader.readSignal(i)) for i in range(edf_reader.signals_in_file)
+        sosfiltfilt(filter, edf_reader.readSignal(i)) for i, filter in enumerate(sos_filters)
     ])
 
     # Resample each channel to the target sampling frequency
@@ -83,11 +83,16 @@ def resample_and_filter_edf_files(dir_path: str, target_fs: int, hp: float, lp: 
                     channel_number = edf_reader.signals_in_file
                     channel_headers = edf_reader.getSignalHeaders()
 
+                for i, channel_header in enumerate(channel_headers):
+                    channel_header['sample_frequency'] = target_fs
+                    channel_header['physical_max'] = np.ceil(np.max(resampled_data[i]))
+                    channel_header['physical_min'] = np.floor(np.min(resampled_data[i]))
+
                 # Overwrite original EDF file with resampled data and new headers
                 with pyedflib.EdfWriter(file_path, channel_number, file_type=pyedflib.FILETYPE_EDFPLUS) as edf_writer:
                     edf_writer.setSignalHeaders(channel_headers)
                     edf_writer.writeSamples(resampled_data)
-                    for i in range(channel_number):
-                        edf_writer.setPhysicalMaximum(i, np.ceil(np.max(resampled_data[i])))
-                        edf_writer.setPhysicalMinimum(i, np.floor(np.min(resampled_data[i])))
-                        edf_writer.setSamplefrequency(i, target_fs)
+                    # for i in range(channel_number):
+                    #     edf_writer.setPhysicalMaximum(i, np.ceil(np.max(resampled_data[i])))
+                    #     edf_writer.setPhysicalMinimum(i, np.floor(np.min(resampled_data[i])))
+                    #     edf_writer.setSamplefrequency(i, target_fs)
