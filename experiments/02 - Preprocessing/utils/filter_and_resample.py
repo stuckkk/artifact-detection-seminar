@@ -37,9 +37,9 @@ def resample_and_filter_edf_file_data(edf_reader: pyedflib.EdfReader, target_fs:
                                 N=order,
                                 Wn=[hp, lp],
                                 btype='bandpass',
-                                fs=edf_reader.getSampleFrequency(i),
+                                fs=channel_freq,
                                 output='sos'
-                            ) for i in range(edf_reader.signals_in_file)])
+                            ) for channel_freq in edf_reader.getSampleFrequencies()])
 
     # Apply sos filters to each channel
     altered_channel_data = np.array([
