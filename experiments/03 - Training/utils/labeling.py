@@ -8,6 +8,7 @@ import pyedflib
 import numpy as np
 import pandas as pd
 import os
+from tqdm import tqdm
 
 
 def load_artifact_annotations(csv_path: str) -> dict[str, list[tuple[float, float]]]:
@@ -149,7 +150,7 @@ def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float
         if os.path.basename(root) == 'unsorted':
             continue
 
-        for file in files:
+        for file in tqdm(files, desc=f"Labeling files in {root}"):
             if file.endswith('.edf'):
                 file_path = os.path.join(root, file)
                 session_name = os.path.splitext(os.path.basename(file_path))[0]
