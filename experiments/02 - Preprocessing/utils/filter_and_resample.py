@@ -83,6 +83,7 @@ def resample_and_filter_edf_files(dir_path: str, target_fs: int, hp: float, lp: 
                     channel_number = edf_reader.signals_in_file
                     channel_headers = edf_reader.getSignalHeaders()
 
+                # Set changed headers here, because after `setSignalHeaders` call they cannot be changed
                 for i, channel_header in enumerate(channel_headers):
                     channel_header['sample_frequency'] = target_fs
                     channel_header['physical_max'] = np.ceil(np.max(resampled_data[i]))
@@ -92,7 +93,3 @@ def resample_and_filter_edf_files(dir_path: str, target_fs: int, hp: float, lp: 
                 with pyedflib.EdfWriter(file_path, channel_number, file_type=pyedflib.FILETYPE_EDFPLUS) as edf_writer:
                     edf_writer.setSignalHeaders(channel_headers)
                     edf_writer.writeSamples(resampled_data)
-                    # for i in range(channel_number):
-                    #     edf_writer.setPhysicalMaximum(i, np.ceil(np.max(resampled_data[i])))
-                    #     edf_writer.setPhysicalMinimum(i, np.floor(np.min(resampled_data[i])))
-                    #     edf_writer.setSamplefrequency(i, target_fs)
