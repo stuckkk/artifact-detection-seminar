@@ -1,0 +1,16 @@
+name: artifact-detection
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - matplotlib
+  - pyedflib
+  - ipykernel
+  - pandas
+  - scipy
+  - scikit-learn
+  - h5py
+  - python=3.13
+  - mne
+  - mne-features
+prefix: /home/users/jhischke/miniforge3/envs/artifact-detection
