@@ -8,7 +8,6 @@ from tqdm import tqdm
 import numpy as np
 import yaml
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report
 
 
 def calculate_features(feature_file: str, data_file: str, features: list[str], sfreq: float = 250.) -> None:

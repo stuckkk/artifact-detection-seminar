@@ -19,24 +19,35 @@ def resample_and_filter_edf_file_data(edf_reader: pyedflib.EdfReader, target_fs:
     :type edf_reader: pyedflib.EdfReader
     :param target_fs: The target sampling frequency to resample the channels to.
     :type target_fs: int
-    :param hp: The high-pass filter cutoff frequency in Hz.
+    :param hp: The high-pass filter cutoff frequency in Hz. If falsy, then only a lowpass filter is applied.
     :type hp: float
-    :param lp: The low-pass filter cutoff frequency in Hz.
+    :param lp: The low-pass filter cutoff frequency in Hz. If falsy, then only a highpass filter ist applied.
     :type lp: float
     :param order: The order of the Butterworth filter to be applied. Defaults to `5`.
     :type order: int
     :return: A 2D NumPy array where each row corresponds to a resampled and filtered channel.
     :rtype: np.ndarray[np.ndarray]
-    :raises ValueError: If the target sampling frequency is higher than any of the original frequencies
+    :raises ValueError: If the target sampling frequency is higher than any of the original frequencies or none of `hp`
+            and `lp` is set.
     """
     if (edf_reader.getSampleFrequencies() < target_fs).any():
         raise ValueError("Target sampling frequency must be lower than all the original frequencies.")
 
+    # Set Wn and btype based on hp and lp parameters
+    if hp and lp:
+        wn, btype = [hp, lp], 'bandpass'
+    elif not hp and not lp:
+        raise ValueError("Either hp or lp have to be set.")
+    elif not hp:
+        wn, btype = lp, 'lowpass'
+    else:
+        wn, btype = hp, 'highpass'
+
     # Calculate sos filters for each channel based on its original sampling frequency
     sos_filters = np.array([butter(
                                 N=order,
-                                Wn=[hp, lp],
-                                btype='bandpass',
+                                Wn=wn,
+                                btype=btype,
                                 fs=channel_freq,
                                 output='sos'
                             ) for channel_freq in edf_reader.getSampleFrequencies()])

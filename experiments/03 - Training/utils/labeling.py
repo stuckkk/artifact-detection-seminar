@@ -3,7 +3,6 @@ This script provides functions to label EDF file data to make it suitable for tr
 """
 
 
-from typing import Iterator
 import pyedflib
 import numpy as np
 import pandas as pd
@@ -129,7 +128,7 @@ def generate_labels(data_windows: dict[str, np.ndarray], artifact_annotations: d
 
 
 def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float,
-                    overlap_treshold: float) -> Iterator[str, dict[str, tuple[np.ndarray, np.ndarray]]]:
+                    overlap_treshold: float) -> list[tuple[str, dict[str, tuple[np.ndarray, np.ndarray]]]]:
     """
     Labels all EDF files in the specified directory according to the specified parameters.
 
@@ -142,10 +141,12 @@ def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float
     :param overlap_treshold: The minimum overlap (as a fraction of the window size) required to label a window as
             containing an artifact.
     :type overlap_treshold: float
-    :return: A dictionary mapping each session name to another dictionary that maps each channel to a tuple
+    :return: A list containing tuples mapping each session name to another dictionary that maps each channel to a tuple
             containing the data windows stored as a 2D NumPy Array and their corresponding labels.
-    :rtype: dict[str, dict[str, tuple[np.ndarray, np.ndarray]]]
+    :rtype: list[tuple[str, dict[str, tuple[np.ndarray, np.ndarray]]]]
     """
+    result = []
+
     for root, _, files in os.walk(dir_path):
         if os.path.basename(root) == 'unsorted':
             continue
@@ -162,7 +163,13 @@ def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float
                     labels = generate_labels(data_windows, artifact_annotations,
                                              overlap_treshold, window_size_sec, window_overlap)
 
-                yield session_name, {
+                session_dict = {
                     channel: (data_windows[channel], labels[channel])
                     for channel in data_windows.keys()
                 }
+                result.append((session_name, session_dict))
+                # yield session_name, {
+                #     channel: (data_windows[channel], labels[channel])
+                #     for channel in data_windows.keys()
+                # }
+    return result
