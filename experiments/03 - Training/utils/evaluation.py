@@ -47,7 +47,7 @@ def get_tp_fp_fn_for_channel(overlap_treshold: float, labels: np.ndarray,
     :param overlap_threshold: The portion of an artifact annotation's duration that need to be covered for it to
             be considered a true positive
     :type overlap_threshold: float
-    :param labels: An array containing the labels for each window.
+    :param labels: An array containing the predicted labels for each window.
     :type labels: np.ndarray
     :param artifact_annotations: A list containing tuples that mark the start and end second of an artifact annotation.
     :type artifact_annotations: list[tuple[float, float]]
@@ -96,7 +96,7 @@ def get_iou_for_set(overlap_treshold: float, labels: np.ndarray, data_split_path
 
     :param overlap_threshold: The portion of an artifact annotation's duration that need to be covered for it to
             be considered a true positive
-    :param labels: An array containing the labels for each window.
+    :param labels: An array containing the predicted labels for each window.
     :type labels: np.ndarray
     :param data_split_path: The path to the yaml file containing the data splits.
     :type data_split_path: str
@@ -121,7 +121,7 @@ def get_iou_for_set(overlap_treshold: float, labels: np.ndarray, data_split_path
     labels_offset = 0
 
     with h5py.File(hdf5_path) as f:
-        for session in tqdm(f, desc="Calculating IoU for sessions"):
+        for session in f:
             if session.split('_')[0] not in relevant_patients:
                 continue
             artifact_annotations = load_artifact_annotations(os.path.join(tuar_path, session) + '.csv')
@@ -130,7 +130,7 @@ def get_iou_for_set(overlap_treshold: float, labels: np.ndarray, data_split_path
                 tp_channel, fp_channel, fn_channel = get_tp_fp_fn_for_channel(
                     overlap_treshold,
                     labels[labels_offset:labels_offset + channel_length],
-                    artifact_annotations[channel]
+                    artifact_annotations.get(channel, [])
                 )
                 tp += tp_channel
                 fp += fp_channel
