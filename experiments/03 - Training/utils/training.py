@@ -30,15 +30,13 @@ def calculate_features(feature_file: str, data_file: str, features: list[str], s
 
     with h5py.File(data_file, 'r') as df, h5py.File(feature_file, 'a') as ff:
         for session in tqdm(df, desc="Calculating features for sessions"):
-            if session not in ff:
-                ff.create_group(session)
+            ff.require_group(session)
             for channel in df[session]:
-                if channel not in ff[session]:
-                    ff[session].create_group(channel)
+                ff[session].require_group(channel)
                 missing_features = [feat for feat in features if feat not in ff[session][channel]]
                 for feature in missing_features:
                     feature_values = univariate_functions[feature](df[session][channel]['data_windows'][:])
-                    # Add if statement in case  univariate function returns more than one number for each window
+                    # Add if statement in case univariate function returns more than one number for each window
                     if len(feature_values) > len(df[session][channel]['data_windows'][:]):
                         data_window_length = len(df[session][channel]['data_windows'][:])
                         length_coeff = len(feature_values) // data_window_length
@@ -131,7 +129,7 @@ def train_random_forest(clf: RandomForestClassifier, hdf5_path: str, features: l
 
 
 def predict_random_forest(clf: RandomForestClassifier, hdf5_path: str, features: list[str],
-                          data_split_file: str) -> tuple[np.ndarray, np.ndarray]:
+                          data_split_file: str, set: str = 'val') -> tuple[np.ndarray, np.ndarray]:
     """
     Uses the provieded random forest to predict labels for the specified features provided in the specified HDF5 file
     and returns the predictions. It is mandatory that the specified features equal those used to train the model.
@@ -144,8 +142,11 @@ def predict_random_forest(clf: RandomForestClassifier, hdf5_path: str, features:
     :type features: list[str]
     :param data_split_file: The path to the ymal file containing the data split.
     :type data_split_file: str
+    :param set: The set to use for prediction. Should be either `train`, `val` or `test`. `test` should only be used
+            for final evaluation. Defaults to `val`.
+    :type set: str
     :return: The actual and predicted labels.
     :rtype: tuple[np.ndarray, np.ndarray]
     """
-    X_val, y_val = get_features_and_labels(hdf5_path, features, 'val', data_split_file)
-    return y_val, clf.predict(X_val)
+    X, y = get_features_and_labels(hdf5_path, features, set, data_split_file)
+    return y, clf.predict(X)

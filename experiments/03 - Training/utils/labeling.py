@@ -168,8 +168,4 @@ def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float
                     for channel in data_windows.keys()
                 }
                 result.append((session_name, session_dict))
-                # yield session_name, {
-                #     channel: (data_windows[channel], labels[channel])
-                #     for channel in data_windows.keys()
-                # }
     return result
