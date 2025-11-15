@@ -1,0 +1,9 @@
+- Zuordnung Model joblib Dateien zu Läufen:
+    - `07.11.25 17:42`: Standard Parameter und features nur bis zu `quantile`
+    - `07.11.25 17:53`: Standard Parameter und alle features, die bisher errechnet wurden
+    - `11.11.25 09:10`: `500` Estimators und alle features.
+    - `11.11.25 13:56`: Standard Parameter, features nur bis zu `quantile`, Daten ohne Hochpass
+    - `11.11.25 13:59`: Standard Parameter und alle features, die bisher errechnet wurden, Daten ohne Hochpass
+    - `11.11.25 14:01`: `500` Estimators und alle features, Daten ohne Hochpass
+    - `14.11.25 11:35`: `class_weight` auf `balanced` gesetzt, ansonsten identisches setup wie Modell 2
+    - `15.11.25 16:24`: `class_weight` gesetzt, 9 zusätzliche Features
