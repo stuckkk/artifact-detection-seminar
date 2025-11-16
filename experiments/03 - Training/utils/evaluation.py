@@ -3,7 +3,6 @@ This script provides functions to evaluate a model's performance with the evalua
 """
 
 import numpy as np
-from tqdm import tqdm
 import h5py
 import yaml
 import os
@@ -35,10 +34,10 @@ def get_tp_fp_fn_for_channel(overlap_treshold: float, labels: np.ndarray,
     """
     Calculates the true positive, false positive and false negative values for the specified labels and
     artifact annotations. A prediction is considered a true positive if there exists an artifact annotation, where the
-    duration covered by the prediction is greater or equal to `overlap_treshold` multiplied by the length of the
-    artifact. If such an artifact annotation cannot be found then that prediction is considered a false positive.
-    If for a given artifact annotation there is no prediction that covers at least the specified threshold of the
-    artifact annotation's duration that is counted as a false negative.
+    Intersection over Union is greater then or equal to `overlap_threshold`. If such an artifact annotation cannot be
+    found then that prediction is considered a false positive.
+    If for a given artifact annotation there is no prediction that an IoU of at least the specified threshold that is
+    counted as a false negative.
 
     Consecutive windows with `true` or `false` labels are counted as only one artifact.
 
@@ -62,17 +61,21 @@ def get_tp_fp_fn_for_channel(overlap_treshold: float, labels: np.ndarray,
 
     for pred_start, pred_end in artifact_predictions:
         match_found = False
+        pred_length = pred_end - pred_start
         for i, (annot_start, annot_end) in enumerate(artifact_annotations):
-            overlap_start = max(pred_start, annot_start)
-            overlap_end = min(pred_end, annot_end)
-            overlap_length = overlap_end - overlap_start
+            intersection_start = max(pred_start, annot_start)
+            intersection_end = min(pred_end, annot_end)
+            intersection_length = intersection_end - intersection_start
 
             # If overlap_length is negative then there is no overlap at all
-            if overlap_length <= 0:
+            if intersection_length <= 0:
                 continue
-            overlap_portion = overlap_length / (annot_end - annot_start)
 
-            if overlap_portion >= overlap_treshold:
+            annot_length = annot_end - annot_start
+            union_length = annot_length + pred_length - intersection_length
+            iou = intersection_length / union_length
+
+            if iou >= overlap_treshold:
                 match_found = True
                 matched_artifacts.add(i)
 
@@ -91,8 +94,8 @@ def get_iou_for_set(overlap_treshold: float, labels: np.ndarray, data_split_path
                     hdf5_path: str) -> tuple[float, float, float]:
     """
     Calculates precision, recall and f1-score, where true positives, false positives and false negatives are determined
-    by whether or not the overlap of a prediction exceeds the specified overlap_threshold of any artifact. For further
-    information, please refer to the documentatio of `get_tp_fp_fn_for_channel`.
+    by whether or not for a given prediction there exists an artifact with an IoU of at least `overlap_treshold`. For
+    further information, please refer to the documentatio of `get_tp_fp_fn_for_channel`.
 
     :param overlap_threshold: The portion of an artifact annotation's duration that need to be covered for it to
             be considered a true positive
@@ -139,6 +142,11 @@ def get_iou_for_set(overlap_treshold: float, labels: np.ndarray, data_split_path
 
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
-    f1 = 2 * precision * recall / (precision + recall)
+    denominator = precision + recall
+
+    if np.isclose(denominator, 0.):
+        f1 = 0
+    else:
+        f1 = 2 * precision * recall / (precision + recall)
 
     return precision, recall, f1

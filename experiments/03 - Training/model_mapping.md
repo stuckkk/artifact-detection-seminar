@@ -7,3 +7,4 @@
     - `11.11.25 14:01`: `500` Estimators und alle features, Daten ohne Hochpass
     - `14.11.25 11:35`: `class_weight` auf `balanced` gesetzt, ansonsten identisches setup wie Modell 2
     - `15.11.25 16:24`: `class_weight` gesetzt, 9 zusätzliche Features
+    - `15.11.25 21:17`: Modell wie Modell 7, mit optimalen Hyperparametern nach GridSearch
