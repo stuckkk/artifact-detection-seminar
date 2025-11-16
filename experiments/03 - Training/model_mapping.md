@@ -8,3 +8,5 @@
     - `14.11.25 11:35`: `class_weight` auf `balanced` gesetzt, ansonsten identisches setup wie Modell 2
     - `15.11.25 16:24`: `class_weight` gesetzt, 9 zusätzliche Features
     - `15.11.25 21:17`: Modell wie Modell 7, mit optimalen Hyperparametern nach GridSearch
+    - `16.11.25 11:12`: Modell wie bei 7, mit `max_depth` auf 20
+    - `16.11.25 12:23`: Modell mit besten Parametern aus zweiter Grid Search, Nur mittlere und gute Features
