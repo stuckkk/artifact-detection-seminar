@@ -5,7 +5,8 @@ This script provides functions to visualize the results of the model training.
 from matplotlib import (
     pyplot as plt,
     axes as ax,
-    figure as fig
+    figure as fig,
+    patches as pat
 )
 import numpy as np
 from utils.training import get_features_and_labels
@@ -74,3 +75,62 @@ def visualize_feature_distribution(feature: str, hdf5_path: str, split: str, dat
         figs.append(fig)
 
     return figs, axes
+
+
+def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true: np.ndarray, y_pred: np.ndarray,
+                                start: int, stop: int,  channel_freq: float = 250.) -> ax.Axes:
+    """
+    This function visualizes the ground truth annotations and the predictions for the specified channel data between
+    the specified `start` and `stop`.
+
+    :param axes: An instance of `Axes` to plot on.
+    :type axes: ax.Axes
+    :param channel_data: Array containing the data to be visualized.
+    :type channel_data: np.ndarray
+    :param y_true: Array containing the ground truth annotations.
+    :type y_true: np.ndarray
+    :param y_pred: Array containing the predictions.
+    :type y_pred: np.ndarray
+    :param start: Start of the interval that is to be visualized in seconds.
+    :type start: int
+    :param stop: Stop of the interval that is to be visualized in seconds.
+    :type stop: int
+    :param channel_freq: Sampling frequency of the data in `channel_data`. Defaults to `250.0`.
+    :type channel_freq: float
+    :return: The instance of `ax.Axes` that contains the plot.
+    :rtype: ax.Axes
+    """
+
+    lower_bound = int(start * channel_freq)
+    upper_bound = int(stop * channel_freq)
+
+    axes.plot(
+        np.arange(lower_bound, upper_bound) / channel_freq,
+        channel_data[lower_bound:upper_bound],
+        linewidth=0.8
+    )
+
+    # for i, annotation in enumerate(y_true[start:stop]):
+    #     if annotation == 1:
+    #         axes.axvspan(start + i, start + i + 1, color='green', alpha=0.3)
+
+    # for i, annotation in enumerate(y_pred[start:stop]):
+    #     if annotation == 1:
+    #         axes.axvspan(start + i, start + i + 1, color='red', alpha=0.3)
+
+    annotation_ranges = [(i, 1) for i in range(start, stop) if y_true[i] == 1]
+    prediction_ranges = [(i, 1) for i in range(start, stop) if y_pred[i] == 1]
+
+    axes.broken_barh(annotation_ranges, (-95, 5), color='green', alpha=0.3)
+    axes.broken_barh(prediction_ranges, (-100, 5), color='red', alpha=0.3)
+
+    legend_handles = [
+        pat.Patch(facecolor='green', alpha=0.3, label='annotations', edgecolor='green'),
+        pat.Patch(facecolor='red', alpha=0.3, label='predictions', edgecolor='red')
+    ]
+    axes.legend(handles=legend_handles)
+    axes.set_ylabel(r"Amplitude in $\mu V$")
+    axes.set_xlabel("Time in seconds")
+    axes.set_title("Visualization of predictions and ground truth")
+
+    return axes
