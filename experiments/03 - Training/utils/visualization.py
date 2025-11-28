@@ -110,22 +110,16 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
         linewidth=0.8
     )
 
-    # for i, annotation in enumerate(y_true[start:stop]):
-    #     if annotation == 1:
-    #         axes.axvspan(start + i, start + i + 1, color='green', alpha=0.3)
-
-    # for i, annotation in enumerate(y_pred[start:stop]):
-    #     if annotation == 1:
-    #         axes.axvspan(start + i, start + i + 1, color='red', alpha=0.3)
-
     annotation_ranges = [(i, 1) for i in range(start, stop) if y_true[i] == 1]
     prediction_ranges = [(i, 1) for i in range(start, stop) if y_pred[i] == 1]
 
-    axes.broken_barh(annotation_ranges, (-95, 5), color='green', alpha=0.3)
-    axes.broken_barh(prediction_ranges, (-100, 5), color='red', alpha=0.3)
+    min_value = np.quantile(channel_data, 0.02)
+
+    axes.broken_barh(annotation_ranges, (min_value - 10, 10), color='green', alpha=0.3)
+    axes.broken_barh(prediction_ranges, (min_value - 25, 10), color='red', alpha=0.3)
 
     legend_handles = [
-        pat.Patch(facecolor='green', alpha=0.3, label='annotations', edgecolor='green'),
+        pat.Patch(facecolor='green', alpha=0.3, label='ground truth', edgecolor='green'),
         pat.Patch(facecolor='red', alpha=0.3, label='predictions', edgecolor='red')
     ]
     axes.legend(handles=legend_handles)
