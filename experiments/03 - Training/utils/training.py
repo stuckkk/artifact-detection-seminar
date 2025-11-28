@@ -66,7 +66,7 @@ def delete_features(hdf5_path: str, features: list[str]) -> None:
 
 
 def get_features_and_labels(hdf5_path: str, features: list[str] | None, set: str,
-                            data_split_file: str) -> tuple[np.ndarray, np.ndarray]:
+                            data_split_file: str, label_str: str = 'labels') -> tuple[np.ndarray, np.ndarray]:
     """
     Returns the specified features and the labels from the specified HDF5 file. The patients to be considered
     can be specified with the `data_split_file` and the `set` parameter. It is mandatory that all the specified features
@@ -80,6 +80,8 @@ def get_features_and_labels(hdf5_path: str, features: list[str] | None, set: str
     :type set: str
     :param data_split_file: The path to the ymal file containing the data split.
     :type data_split_file: str
+    :param label_str: The name of the dataset containing the labels to use.
+    :type label_str: str
     :return: Tuple consisting of the feature matrix and the label array
     :rtype: tuple[np.ndarray, np.ndarray]
     """
@@ -95,11 +97,11 @@ def get_features_and_labels(hdf5_path: str, features: list[str] | None, set: str
             if session.split('_')[0] not in relevant_patients:
                 continue
             for channel in f[session]:
-                label_vector_list.append(f[session][channel]['labels'][:])
+                label_vector_list.append(f[session][channel][label_str][:])
                 feature_vector_list = []
                 # If features is None, add all the calculated features to the list
                 if not features:
-                    features = [feat for feat in f[session][channel].keys() if not feat == 'labels']
+                    features = [feat for feat in f[session][channel].keys() if not feat.startswith('labels')]
                 for feature in features:
                     feature_vector_list.append(f[session][channel][feature][:])
                 feature_matrix_list.append(np.column_stack(feature_vector_list))
