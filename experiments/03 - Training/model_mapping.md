@@ -10,3 +10,9 @@
     - `15.11.25 21:17`: Modell wie Modell 7, mit optimalen Hyperparametern nach GridSearch
     - `16.11.25 11:12`: Modell wie bei 7, mit `max_depth` auf 20
     - `16.11.25 12:23`: Modell mit besten Parametern aus zweiter Grid Search, Nur mittlere und gute Features
+    - `01.12.25 07:45`: Modell mit optimalen Parametern aus Grid Search mit normalem (niedrigeren) F1 Score
+    - `04.12.25 12:53`: Modell wie bei 12, aber trainiert ausschließlich auf `eyem` Artefakten
+    - `04.12.25 13:01`: Modell wie eins vorher, aber trainiert ausschließlich auf `musc` Artefakten
+    - `07.12.25 13:20`: Modell mit optimalen Parametern aus dritter GridSearch, aber trainiert auf allen Features
+    - `07.12.25 13:44`: Modell mit optimalen Parametern aus dritter GridSearch, aber trainiert 25 besten Features
+    auf allen Features die ich als gut oder mittel eingestuft habe.

@@ -10,19 +10,26 @@ import os
 from tqdm import tqdm
 
 
-def load_artifact_annotations(csv_path: str) -> dict[str, list[tuple[float, float]]]:
+def load_artifact_annotations(csv_path: str, classes: list[str] | None = None) -> dict[str, list[tuple[float, float]]]:
     """
     Loads artfiact annotation from the specified CSV file. The artifact annotations are returned as
     a dictionary mapping each channel to a list of tuples, where each tuple contains the start and stop time.
 
     :param csv_path: Path to the CSV file containing artifact annotations.
     :type csv_path: str
+    :param classes: A list of the artifact class names to consider. If `None` all classes will be considered.
+            Defaults to `None`.
+    :type classes: list[str] | None
     :return: A dictionary mapping each channel to a list of tuples with start and stop times of artifacts.
     :rtype: dict[str, list[tuple[float, float]]]
     """
     artifacts = {}
 
     df = pd.read_csv(csv_path, comment='#')
+
+    if classes is not None:
+        df = df[df['label'].isin(classes)]
+
     for row in df.itertuples(index=False):
         channel = row.channel
         if channel not in artifacts:
@@ -127,8 +134,8 @@ def generate_labels(data_windows: dict[str, np.ndarray], artifact_annotations: d
     return result
 
 
-def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float,
-                    overlap_treshold: float) -> list[tuple[str, dict[str, tuple[np.ndarray, np.ndarray]]]]:
+def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float, overlap_treshold: float,
+                    classes: list[str] | None = None) -> list[tuple[str, dict[str, tuple[np.ndarray, np.ndarray]]]]:
     """
     Labels all EDF files in the specified directory according to the specified parameters.
 
@@ -141,6 +148,9 @@ def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float
     :param overlap_treshold: The minimum overlap (as a fraction of the window size) required to label a window as
             containing an artifact.
     :type overlap_treshold: float
+    :param classes: The names of the classes to consider an artifact when labeling the files.
+            If `None` all classes will be considered. Defaults to `None`.
+    :type classes: list[str] | None
     :return: A list containing tuples mapping each session name to another dictionary that maps each channel to a tuple
             containing the data windows stored as a 2D NumPy Array and their corresponding labels.
     :rtype: list[tuple[str, dict[str, tuple[np.ndarray, np.ndarray]]]]
@@ -159,7 +169,7 @@ def label_all_files(dir_path: str, window_size_sec: float, window_overlap: float
 
                 with pyedflib.EdfReader(file_path) as edf_reader:
                     data_windows = split_edf_file_data(edf_reader, window_size_sec, window_overlap)
-                    artifact_annotations = load_artifact_annotations(csv_path)
+                    artifact_annotations = load_artifact_annotations(csv_path, classes)
                     labels = generate_labels(data_windows, artifact_annotations,
                                              overlap_treshold, window_size_sec, window_overlap)
 

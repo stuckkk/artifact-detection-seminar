@@ -9,6 +9,7 @@ from matplotlib import (
     patches as pat
 )
 import numpy as np
+import pandas as pd
 from utils.training import get_features_and_labels
 
 
@@ -78,7 +79,8 @@ def visualize_feature_distribution(feature: str, hdf5_path: str, split: str, dat
 
 
 def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true: np.ndarray, y_pred: np.ndarray,
-                                start: int, stop: int,  channel_freq: float = 250.) -> ax.Axes:
+                                start: int, stop: int, csv_file: str | None = None, channel: str | None = None,
+                                channel_freq: float = 250.) -> ax.Axes:
     """
     This function visualizes the ground truth annotations and the predictions for the specified channel data between
     the specified `start` and `stop`.
@@ -95,6 +97,11 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
     :type start: int
     :param stop: Stop of the interval that is to be visualized in seconds.
     :type stop: int
+    :param csv_file: The path to the csv file containing the original artifact durations. If not `None` the original
+            artifact duration before dividing in windows will be plotted. Defaults to `None`.
+    :type csv_file: str | None
+    :param channel: The channel to display for the original artifact duration. Defaults to `None`.
+    :type channel: str | None
     :param channel_freq: Sampling frequency of the data in `channel_data`. Defaults to `250.0`.
     :type channel_freq: float
     :return: The instance of `ax.Axes` that contains the plot.
@@ -115,14 +122,29 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
 
     min_value = np.quantile(channel_data, 0.02)
 
-    axes.broken_barh(annotation_ranges, (min_value - 10, 10), color='green', alpha=0.3)
-    axes.broken_barh(prediction_ranges, (min_value - 25, 10), color='red', alpha=0.3)
+    axes.broken_barh(prediction_ranges, (min_value - 10, 10), color='red', alpha=0.3)
+    axes.broken_barh(annotation_ranges, (min_value - 25, 10), color='green', alpha=0.3)
 
-    legend_handles = [
-        pat.Patch(facecolor='green', alpha=0.3, label='ground truth', edgecolor='green'),
-        pat.Patch(facecolor='red', alpha=0.3, label='predictions', edgecolor='red')
+    patches = [
+        pat.Patch(facecolor='red', alpha=0.3, label='prediction windows', edgecolor='red'),
+        pat.Patch(facecolor='green', alpha=0.3, label='ground truth windows', edgecolor='green')
     ]
-    axes.legend(handles=legend_handles)
+
+    if csv_file is not None:
+        df = pd.read_csv(csv_file, comment='#')
+        df = df[(df['channel'] == channel) & (df['start_time'] < stop) & (df['stop_time'] > start)]
+        df['duration'] = df['stop_time'] - df['start_time']
+        df['max_duration'] = stop - df['start_time']
+        ranges = [
+            (max(row['start_time'], start), min(row['duration'], row['max_duration'], stop - start))
+            for _, row in df.iterrows()
+        ]
+        axes.broken_barh(ranges, (min_value - 40, 10), color='blue', alpha=0.3)
+        patches.append(
+            pat.Patch(facecolor='blue', alpha=0.3, label='ground truth', edgecolor='blue')
+        )
+
+    axes.legend(handles=patches)
     axes.set_ylabel(r"Amplitude in $\mu V$")
     axes.set_xlabel("Time in seconds")
     axes.set_title("Visualization of predictions and ground truth")
