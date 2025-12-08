@@ -126,7 +126,7 @@ def generate_labels(data_windows: dict[str, np.ndarray], artifact_annotations: d
                 overlap_stop = min(window_stop, artifact_stop)
                 overlap_duration = max(0.0, overlap_stop - overlap_start)
 
-                if overlap_duration / window_size_sec >= overlap_threshold:
+                if overlap_duration / window_size_sec > overlap_threshold:
                     labels[window_idx] = 1
 
         result[channel] = labels
