@@ -111,19 +111,30 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
     lower_bound = int(start * channel_freq)
     upper_bound = int(stop * channel_freq)
 
+    current_data = channel_data[lower_bound:upper_bound]
+
     axes.plot(
         np.arange(lower_bound, upper_bound) / channel_freq,
-        channel_data[lower_bound:upper_bound],
+        current_data,
         linewidth=0.8
     )
 
     annotation_ranges = [(i, 1) for i in range(start, stop) if y_true[i] == 1]
     prediction_ranges = [(i, 1) for i in range(start, stop) if y_pred[i] == 1]
 
-    min_value = np.quantile(channel_data, 0.02)
+    min_value = np.min(current_data)
+    max_value = np.max(current_data)
+    values_range = max_value - min_value
 
-    axes.broken_barh(prediction_ranges, (min_value - 10, 10), color='red', alpha=0.3)
-    axes.broken_barh(annotation_ranges, (min_value - 25, 10), color='green', alpha=0.3)
+    bar_height = values_range * 0.08
+    bar_gap = values_range * 0.02
+
+    pred_bar_start = min_value - bar_height - bar_gap
+    gt_windows_bar_start = pred_bar_start - bar_height - bar_gap
+    gt_csv_bar_start = gt_windows_bar_start - bar_height - bar_gap
+
+    axes.broken_barh(prediction_ranges, (pred_bar_start, bar_height), color='red', alpha=0.3)
+    axes.broken_barh(annotation_ranges, (gt_windows_bar_start, bar_height), color='green', alpha=0.3)
 
     patches = [
         pat.Patch(facecolor='red', alpha=0.3, label='prediction windows', edgecolor='red'),
@@ -139,14 +150,28 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
             (max(row['start_time'], start), min(row['duration'], row['max_duration'], stop - start))
             for _, row in df.iterrows()
         ]
-        axes.broken_barh(ranges, (min_value - 40, 10), color='blue', alpha=0.3)
+        axes.broken_barh(ranges, (gt_csv_bar_start, bar_height), color='blue', alpha=0.3)
         patches.append(
             pat.Patch(facecolor='blue', alpha=0.3, label='ground truth', edgecolor='blue')
         )
 
-    axes.legend(handles=patches)
+    # if csv_file is not None:
+    #     df = pd.read_csv(csv_file, comment='#')
+    #     df = df[(df['channel'] == channel) & (df['start_time'] < stop) & (df['stop_time'] > start)]
+    #     df['duration'] = df['stop_time'] - df['start_time']
+    #     df['max_duration'] = stop - df['start_time']
+    #     ranges = [
+    #         (max(row['start_time'], start), min(row['duration'], row['max_duration'], stop - start))
+    #         for _, row in df.iterrows()
+    #     ]
+    #     axes.broken_barh(ranges, (min_value - 40, 10), color='blue', alpha=0.3)
+    #     patches.append(
+    #         pat.Patch(facecolor='blue', alpha=0.3, label='ground truth', edgecolor='blue')
+    #     )
+
+    axes.legend(handles=patches, loc='upper right')
     axes.set_ylabel(r"Amplitude in $\mu V$")
     axes.set_xlabel("Time in seconds")
-    axes.set_title("Visualization of predictions and ground truth")
+    axes.set_title(f"Predictions and ground truth of channel {channel} between seconds {start} and {stop}")
 
     return axes
