@@ -155,20 +155,6 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
             pat.Patch(facecolor='blue', alpha=0.3, label='ground truth', edgecolor='blue')
         )
 
-    # if csv_file is not None:
-    #     df = pd.read_csv(csv_file, comment='#')
-    #     df = df[(df['channel'] == channel) & (df['start_time'] < stop) & (df['stop_time'] > start)]
-    #     df['duration'] = df['stop_time'] - df['start_time']
-    #     df['max_duration'] = stop - df['start_time']
-    #     ranges = [
-    #         (max(row['start_time'], start), min(row['duration'], row['max_duration'], stop - start))
-    #         for _, row in df.iterrows()
-    #     ]
-    #     axes.broken_barh(ranges, (min_value - 40, 10), color='blue', alpha=0.3)
-    #     patches.append(
-    #         pat.Patch(facecolor='blue', alpha=0.3, label='ground truth', edgecolor='blue')
-    #     )
-
     axes.legend(handles=patches, loc='upper right')
     axes.set_ylabel(r"Amplitude in $\mu V$")
     axes.set_xlabel("Time in seconds")
