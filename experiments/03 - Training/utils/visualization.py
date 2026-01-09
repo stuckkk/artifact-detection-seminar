@@ -156,10 +156,10 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
             pat.Patch(facecolor='blue', alpha=0.3, label='Ground truth intervals', edgecolor='blue')
         )
 
-    axes.legend(handles=patches, loc='upper right', fontsize=18)
-    axes.set_ylabel(r"Amplitude in $\mu V$", fontsize=18)
-    axes.set_xlabel("Time in seconds", fontsize=18)
-    axes.set_title(f"Predictions and ground truth of channel {channel} between seconds {start} and {stop}", fontsize=18)
-    axes.tick_params(labelsize=18)
+    axes.legend(handles=patches, loc='upper right', fontsize=20)
+    axes.set_ylabel(r"Amplitude in $\mu V$", fontsize=20)
+    axes.set_xlabel("Time in seconds", fontsize=20)
+    axes.set_title(f"Predictions and ground truth of channel {channel} between seconds {start} and {stop}", fontsize=20)
+    axes.tick_params(labelsize=20)
 
     return axes
