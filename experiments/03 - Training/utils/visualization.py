@@ -14,7 +14,8 @@ from utils.training import get_features_and_labels
 
 
 def visualize_feature_distribution(feature: str, hdf5_path: str, split: str, data_split_path: str,
-                                   range_config: tuple[float, float] | float | None = 2.5) -> tuple[list[fig.Figure], list[ax.Axes]]:
+                                   range_config: tuple[float, float] | float | None = 2.5
+                                   ) -> tuple[list[fig.Figure], list[ax.Axes]]:
     """
     This function visualizes the distriution of the specified `feature` in the specified `split`. The `range` can be
     used to configure how outliers will be shown in the plot.
@@ -137,8 +138,8 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
     axes.broken_barh(annotation_ranges, (gt_windows_bar_start, bar_height), color='green', alpha=0.3)
 
     patches = [
-        pat.Patch(facecolor='red', alpha=0.3, label='prediction windows', edgecolor='red'),
-        pat.Patch(facecolor='green', alpha=0.3, label='ground truth windows', edgecolor='green')
+        pat.Patch(facecolor='red', alpha=0.3, label='Prediction windows', edgecolor='red'),
+        pat.Patch(facecolor='green', alpha=0.3, label='Ground truth windows', edgecolor='green')
     ]
 
     if csv_file is not None:
@@ -152,12 +153,13 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
         ]
         axes.broken_barh(ranges, (gt_csv_bar_start, bar_height), color='blue', alpha=0.3)
         patches.append(
-            pat.Patch(facecolor='blue', alpha=0.3, label='ground truth', edgecolor='blue')
+            pat.Patch(facecolor='blue', alpha=0.3, label='Ground truth intervals', edgecolor='blue')
         )
 
-    axes.legend(handles=patches, loc='upper right')
-    axes.set_ylabel(r"Amplitude in $\mu V$")
-    axes.set_xlabel("Time in seconds")
-    axes.set_title(f"Predictions and ground truth of channel {channel} between seconds {start} and {stop}")
+    axes.legend(handles=patches, loc='upper right', fontsize=15)
+    axes.set_ylabel(r"Amplitude in $\mu V$", fontsize=15)
+    axes.set_xlabel("Time in seconds", fontsize=15)
+    axes.set_title(f"Predictions and ground truth of channel {channel} between seconds {start} and {stop}", fontsize=15)
+    axes.tick_params(labelsize=15)
 
     return axes
