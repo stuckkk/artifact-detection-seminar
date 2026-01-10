@@ -81,7 +81,7 @@ def visualize_feature_distribution(feature: str, hdf5_path: str, split: str, dat
 
 def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true: np.ndarray, y_pred: np.ndarray,
                                 start: int, stop: int, csv_file: str | None = None, channel: str | None = None,
-                                channel_freq: float = 250.) -> ax.Axes:
+                                channel_freq: float = 250., fontsize: int = 20) -> ax.Axes:
     """
     This function visualizes the ground truth annotations and the predictions for the specified channel data between
     the specified `start` and `stop`.
@@ -105,6 +105,8 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
     :type channel: str | None
     :param channel_freq: Sampling frequency of the data in `channel_data`. Defaults to `250.0`.
     :type channel_freq: float
+    :param fontsize: The fontsize used for labels, legend, title etc. Defaults to `20`.
+    :type fontsize: int
     :return: The instance of `ax.Axes` that contains the plot.
     :rtype: ax.Axes
     """
@@ -156,10 +158,12 @@ def visualize_model_predictions(axes: ax.Axes, channel_data: np.ndarray, y_true:
             pat.Patch(facecolor='blue', alpha=0.3, label='Ground truth intervals', edgecolor='blue')
         )
 
-    axes.legend(handles=patches, loc='upper right', fontsize=20)
-    axes.set_ylabel(r"Amplitude in $\mu V$", fontsize=20)
-    axes.set_xlabel("Time in seconds", fontsize=20)
-    axes.set_title(f"Predictions and ground truth of channel {channel} between seconds {start} and {stop}", fontsize=20)
-    axes.tick_params(labelsize=20)
+    axes.legend(handles=patches, loc='upper right', fontsize=fontsize)
+    axes.set_ylabel(r"Amplitude in $\mu V$", fontsize=fontsize)
+    axes.set_xlabel("Time in seconds", fontsize=fontsize)
+    axes.set_title(
+        f"Predictions and ground truth of channel {channel} between seconds {start} and {stop}", fontsize=fontsize
+    )
+    axes.tick_params(labelsize=fontsize)
 
     return axes
